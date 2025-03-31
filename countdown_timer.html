@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/fav.ico">
+    <title>Countdown Timer</title>
+    <style>
+        @font-face {
+            font-family: 'koverwatch';
+            src: url('koverwatch.ttf') format('truetype');
+        }
+
+        body {
+            font-family: 'koverwatch', sans-serif;
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .timer-container {
+            text-align: center;
+            position: relative;
+        }
+
+        .inputs {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        input {
+            width: 60px;
+            height: 60px;
+            font-family: 'koverwatch', sans-serif;
+            font-size: 2rem;
+            text-align: center;
+            margin: 0 10px;
+            background-color: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            letter-spacing: 5px;
+        }
+
+        .separator {
+            height: 50px;
+            width: 1px;
+            background-color: white;
+            margin: 0 10px;
+        }
+
+        .start-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #ff8c19;
+            border: none;
+            font-family: 'koverwatch', sans-serif;
+            letter-spacing: 2px;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(255, 174, 0, 0.308);
+            transition: all 0.2s ease-in-out;
+            outline: none;
+            /* text-align: center;
+            align-items: center;
+            justify-content: center; */
+        }
+
+        .start-button:hover {
+            background-color: #ff8c19;
+            box-shadow: 0 6px 12px rgba(255, 0, 0, 0.3);
+        }
+
+        .start-button:active {
+            transform: translateY(3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .clear-button {
+            border: none;
+            color: white;
+            text-decoration: none;
+            font-family: 'koverwatch', sans-serif;
+            letter-spacing: 8px;
+            text-align: center;
+            display: block;
+            margin-top: 40px;
+        }
+
+        .clear-button:active {
+            transform: translateY(3px);
+        }
+
+        .finish-text {
+            position: absolute;
+            top: -30px;
+            width: 100%;
+            color: rgb(60, 255, 0);
+            font-family: 'koverwatch', sans-serif;
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 15px;
+            display: none;
+        }
+
+        /* Убираем стрелки в полях ввода */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+            /* Для Firefox */
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        <div class="finish-text" id="finishText">FINISH</div>
+        <br>
+        <div class="inputs">
+            <input type="number" id="hours" maxlength="2" placeholder="00">
+            <div class="separator"></div>
+            <input type="number" id="minutes" maxlength="2" placeholder="00">
+            <div class="separator"></div>
+            <input type="number" id="seconds" maxlength="2" placeholder="00">
+        </div>
+
+        <button class="start-button" id="startButton">Start</button>
+        <a href="#" class="clear-button" id="clearButton">Clear</a>
+    </div>
+    <script>
+        let timer;
+        let timeRemaining;
+        let lastInput = { hours: '', minutes: '', seconds: '' };
+
+        // Start button listener
+        document.getElementById("startButton").addEventListener("click", startTimer);
+
+        // Clear button listener
+        document.getElementById("clearButton").addEventListener("click", clearFields);
+
+        // Превращаем ввод отрицательных чисел в положительные и удаляем символ плюса
+        document.getElementById("hours").addEventListener("input", preventNegativeInputAndPlusSign);
+        document.getElementById("minutes").addEventListener("input", preventNegativeInputAndPlusSign);
+        document.getElementById("seconds").addEventListener("input", preventNegativeInputAndPlusSign);
+
+        function preventNegativeInputAndPlusSign(event) {
+            // Убираем символы, которые не допустимы в начале строки
+            event.target.value = event.target.value.replace(/^[\+\-\.\,\*\=]/, '');
+        }
+
+        function startTimer() {
+            if (timer) {
+                clearInterval(timer);
+            }
+
+            // Save user input before starting the timer
+            lastInput.hours = document.getElementById("hours").value || '';
+            lastInput.minutes = document.getElementById("minutes").value || '';
+            lastInput.seconds = document.getElementById("seconds").value || '';
+
+            const hours = parseInt(lastInput.hours) || 0;
+            const minutes = parseInt(lastInput.minutes) || 0;
+            const seconds = parseInt(lastInput.seconds) || 0;
+
+            // Calculate total time in seconds
+            timeRemaining = hours * 3600 + minutes * 60 + seconds;
+
+            if (timeRemaining > 0) {
+                document.getElementById("startButton").disabled = true;
+                document.getElementById("finishText").style.display = "none";
+                timer = setInterval(updateTimer, 1000);
+            }
+        }
+
+        function updateTimer() {
+            if (timeRemaining > 0) {
+                timeRemaining--;
+
+                const hours = Math.floor(timeRemaining / 3600);
+                const minutes = Math.floor((timeRemaining % 3600) / 60);
+                const seconds = timeRemaining % 60;
+
+                if (lastInput.hours !== '') {
+                    document.getElementById("hours").value = formatTime(hours);
+                    document.getElementById("minutes").value = formatTime(minutes);
+                    document.getElementById("seconds").value = formatTime(seconds);
+                } else if (lastInput.minutes !== '') {
+                    document.getElementById("minutes").value = formatTime(minutes);
+                    document.getElementById("seconds").value = formatTime(seconds);
+                    document.getElementById("hours").value = '';
+                } else if (lastInput.seconds !== '') {
+                    document.getElementById("seconds").value = formatTime(seconds);
+                    document.getElementById("minutes").value = '';
+                    document.getElementById("hours").value = '';
+                }
+            } else {
+                clearInterval(timer);
+                document.getElementById("finishText").style.display = "block";
+                document.getElementById("startButton").disabled = false;
+                document.getElementById("hours").value = lastInput.hours;
+                document.getElementById("minutes").value = lastInput.minutes;
+                document.getElementById("seconds").value = lastInput.seconds;
+            }
+        }
+
+        function formatTime(time) {
+            return time < 10 ? "0" + time : time;
+        }
+
+        // Function to clear all input fields
+        function clearFields() {
+            document.getElementById("hours").value = '';
+            document.getElementById("minutes").value = '';
+            document.getElementById("seconds").value = '';
+            document.getElementById("finishText").style.display = "none"; // Hide finish text when clearing
+            clearInterval(timer); // Stop the timer if it's running
+            document.getElementById("startButton").disabled = false; // Enable the start button
+        }
+    </script>
+</body>
+</html>
